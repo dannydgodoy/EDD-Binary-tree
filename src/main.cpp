@@ -1,5 +1,7 @@
 #include <iostream>
 #include <string>
+#include <fstream>
+#include <sstream>
 
 using namespace std;
 
@@ -37,5 +39,78 @@ struct Person {
 					left(nullptr),
 					right(nullptr) {}
 };
+
+class RoyalFamilyTree {
+private:
+	Person* root;
+
+	void deleteTree(Person* current) {
+		if (!current) return;
+		deleteTree(current->left);
+		deleteTree(current->right);
+		delete current;
+	}
+
+public:
+	RoyalFamilyTree() : root(nullptr) {}
+
+	~RoyalFamilyTree() {
+		deleteTree(root);
+	}
+
+	void loadFromCSV(const string& filename) {
+		ifstream file(filename);
+		if (!file.is_open()) {
+			string alt = string("bin/") + filename;
+			file.open(alt);
+			if (!file.is_open()) {
+				cerr << "Error al abrir archivo: " << filename << " o " << alt << endl;
+				return;
+			}
+		}
+
+		string line;
+		if (!getline(file, line)) return;
+
+		int count = 0;
+		while (getline(file, line)) {
+			if (line.empty()) continue;
+			stringstream ss(line);
+			string token;
+
+			int id = 0, age = 0, id_father = 0;
+			char gender = 'U';
+			bool is_dead = false, was_king = false, is_king = false;
+			string name, last_name;
+
+			if (!getline(ss, token, ',')) continue;
+			id = stoi(token);
+			getline(ss, name, ',');
+			getline(ss, last_name, ',');
+			if (getline(ss, token, ',')) if (!token.empty()) gender = token[0];
+			if (getline(ss, token, ',')) age = stoi(token);
+			if (getline(ss, token, ',')) id_father = stoi(token);
+			if (getline(ss, token, ',')) is_dead = (stoi(token) != 0);
+			if (getline(ss, token, ',')) was_king = (stoi(token) != 0);
+			if (getline(ss, token, ',')) is_king = (stoi(token) != 0);
+
+			Person* p = new Person(id, name, last_name, gender, age, id_father, is_dead, was_king, is_king);
+			if (root == nullptr) root = p;
+			else {
+				Person* it = root;
+				while (it->right) it = it->right;
+				it->right = p;
+			}
+
+			++count;
+		}
+
+		cout << "Cargados " << count << " miembros desde CSV." << endl;
+		file.close();
+	}
+
+	// Otros métodos (insert, búsquedas, etc.) se agregarán en commits siguientes
+};
+
 
 
