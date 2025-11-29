@@ -44,6 +44,33 @@ class RoyalFamilyTree {
 private:
 	Person* root;
 
+	bool insert(Person*& current, Person* newPerson) {
+		if (current == nullptr) {
+			current = newPerson;
+			cout << "Inserted at root: " << newPerson->name << " " << newPerson->last_name << endl;
+			return true;
+		}
+
+		if (current->id == newPerson->id_father) {
+			if (current->left == nullptr) {
+				current->left = newPerson;
+				cout << "Inserted as left child of " << current->name << " " << current->last_name << ": " << newPerson->name << " " << newPerson->last_name << endl;
+			} else {
+				Person* child = current->left;
+				while (child->right != nullptr) child = child->right;
+				child->right = newPerson;
+				cout << "Inserted as right child of " << current->name << " " << current->last_name << ": " << newPerson->name << " " << newPerson->last_name << endl;
+			}
+			return true;
+		}
+
+		bool inserted = false;
+		if (current->left != nullptr) inserted = insert(current->left, newPerson);
+		if (!inserted && current->right != nullptr) inserted = insert(current->right, newPerson);
+
+		return inserted;
+	}
+
 	void deleteTree(Person* current) {
 		if (!current) return;
 		deleteTree(current->left);
@@ -95,11 +122,15 @@ public:
 			if (getline(ss, token, ',')) is_king = (stoi(token) != 0);
 
 			Person* p = new Person(id, name, last_name, gender, age, id_father, is_dead, was_king, is_king);
-			if (root == nullptr) root = p;
-			else {
-				Person* it = root;
-				while (it->right) it = it->right;
-				it->right = p;
+			if (root == nullptr) {
+				root = p;
+			} else {
+				bool ok = insert(root, p);
+				if (!ok) {
+					Person* it = root;
+					while (it->right) it = it->right;
+					it->right = p; 
+				}
 			}
 
 			++count;
