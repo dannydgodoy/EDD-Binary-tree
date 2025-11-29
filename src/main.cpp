@@ -78,6 +78,51 @@ private:
 		delete current;
 	}
 
+	Person* findPersonById(Person* current, int id) {
+		if (current == nullptr) return nullptr;
+		if (current->id == id) return current;
+		Person* found = findPersonById(current->left, id);
+		if (found == nullptr) found = findPersonById(current->right, id);
+		return found;
+	}
+
+	Person* findCurrentKing(Person* current) {
+		if (current == nullptr) return nullptr;
+		if (current->is_king) return current;
+		Person* king = findCurrentKing(current->left);
+		if (king == nullptr) king = findCurrentKing(current->right);
+		return king;
+	}
+
+	Person* findSuccessor(Person* current) {
+		if (current == nullptr) return nullptr;
+		if (!current->is_dead && current->gender == 'H') return current;
+		Person* successor = findSuccessor(current->left);
+		if (successor == nullptr) successor = findSuccessor(current->right);
+		return successor;
+	}
+
+	Person* findUncle(Person* current) {
+		if (current == nullptr || current->id_father == 0) return nullptr;
+		Person* father = findPersonById(root, current->id_father);
+		if (father == nullptr || father->id_father == 0) return nullptr;
+		Person* grandfather = findPersonById(root, father->id_father);
+		if (grandfather == nullptr) return nullptr;
+		if (grandfather->left && grandfather->left != father) return grandfather->left;
+		if (grandfather->right && grandfather->right != father) return grandfather->right;
+		return nullptr;
+	}
+
+	Person* findAncestorWithTwoChildren(Person* current) {
+		if (current == nullptr || current->id_father == 0) return nullptr;
+		Person* ancestor = findPersonById(root, current->id_father);
+		while (ancestor != nullptr) {
+			if (ancestor->left && ancestor->right) return ancestor;
+			ancestor = findPersonById(root, ancestor->id_father);
+		}
+		return nullptr;
+	}
+
 public:
 	RoyalFamilyTree() : root(nullptr) {}
 
@@ -168,7 +213,95 @@ public:
 		printAllMembers(current->left);
 		printAllMembers(current->right);
 	}
-};
 
+	public:
+	void showCurrentKingAndSuccessor() {
+		Person* currentKing = findCurrentKing(root);
+		if (currentKing == nullptr) {
+			cout << "No hay rey actualmente." << endl;
+			return;
+		}
+		cout << "Rey actual: " << currentKing->name << " " << currentKing->last_name << endl;
+		Person* successor = findSuccessor(currentKing->left);
+		if (!successor) successor = findSuccessor(currentKing->right);
+		if (successor) {
+			cout << "Sucesor: " << successor->name << " " << successor->last_name << endl;
+		} else {
+			cout << "No se encontró sucesor válido en la rama actual." << endl;
+		}
+	}
 
+	void assassinateKing() {
+		Person* currentKing = findCurrentKing(root);
+		if (currentKing == nullptr) {
+			cout << "No hay rey actual." << endl;
+			return;
+		}
+		currentKing->is_dead = true;
+		cout << "El rey " << currentKing->name << " " << currentKing->last_name << " ha sido asesinado." << endl;
+		assignNewKing();
+	}
 
+	void assignNewKing() {
+		Person* currentKing = findCurrentKing(root);
+		if (currentKing == nullptr) {
+			cout << "No hay rey actual." << endl;
+			return;
+		}
+
+		if (!(currentKing->is_dead || currentKing->age > 70)) {
+			cout << "El rey actual está vivo: " << currentKing->name << " " << currentKing->last_name << endl;
+			return;
+		}
+
+		currentKing->is_king = false;
+		Person* successor = findSuccessor(currentKing->left);
+		if (!successor) successor = findSuccessor(currentKing->right);
+		if (successor) {
+			successor->is_king = true;
+			cout << "Nuevo rey asignado: " << successor->name << " " << successor->last_name << endl;
+			Person* nextSuccessor = findSuccessor(successor->left);
+			if (!nextSuccessor) nextSuccessor = findSuccessor(successor->right);
+			if (nextSuccessor) cout << "Siguiente sucesor: " << nextSuccessor->name << " " << nextSuccessor->last_name << endl;
+			return;
+		}
+
+		Person* uncle = findUncle(currentKing);
+		if (uncle) {
+			successor = findSuccessor(uncle->left);
+			if (!successor) successor = findSuccessor(uncle->right);
+			if (successor) {
+				successor->is_king = true;
+				cout << "Nuevo rey asignado: " << successor->name << " " << successor->last_name << endl;
+				Person* nextSuccessor = findSuccessor(successor->left);
+				if (!nextSuccessor) nextSuccessor = findSuccessor(successor->right);
+				if (nextSuccessor) cout << "Siguiente sucesor: " << nextSuccessor->name << " " << nextSuccessor->last_name << endl;
+				return;
+			}
+			if (!uncle->is_dead) {
+				uncle->is_king = true;
+				cout << "Nuevo rey asignado: " << uncle->name << " " << uncle->last_name << endl;
+				Person* nextSuccessor = findSuccessor(uncle->left);
+				if (!nextSuccessor) nextSuccessor = findSuccessor(uncle->right);
+				if (nextSuccessor) cout << "Siguiente sucesor: " << nextSuccessor->name << " " << nextSuccessor->last_name << endl;
+				return;
+			}
+		}
+
+		Person* ancestor = findAncestorWithTwoChildren(currentKing);
+		if (ancestor) {
+			successor = findSuccessor(ancestor->left);
+			if (!successor) successor = findSuccessor(ancestor->right);
+			if (successor) {
+				successor->is_king = true;
+				cout << "Nuevo rey asignado: " << successor->name << " " << successor->last_name << endl;
+				Person* nextSuccessor = findSuccessor(successor->left);
+				if (!nextSuccessor) nextSuccessor = findSuccessor(successor->right);
+				if (nextSuccessor) cout << "Siguiente sucesor: " << nextSuccessor->name << " " << nextSuccessor->last_name << endl;
+				return;
+			}
+		}
+
+		cout << "No se encontró sucesor válido." << endl;
+	}
+}
