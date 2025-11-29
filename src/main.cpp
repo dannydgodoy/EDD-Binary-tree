@@ -140,7 +140,34 @@ public:
 		file.close();
 	}
 
-	// Otros métodos (insert, búsquedas, etc.) se agregarán en commits siguientes
+	void showLivingMembers() {
+		cout << "Lista de familiares vivos:" << endl;
+		showLivingMembers(root);
+	}
+
+	void showLivingMembers(Person* current) {
+		if (current == nullptr) return;
+		if (!current->is_dead) {
+			cout << current->name << " " << current->last_name << " (ID: " << current->id << ")" << endl;
+		}
+		showLivingMembers(current->left);
+		showLivingMembers(current->right);
+	}
+
+	void printAllMembers() {
+		cout << "Lista de todos los miembros de la familia real:" << endl;
+		printAllMembers(root);
+	}
+
+	void printAllMembers(Person* current) {
+		if (current == nullptr) return;
+		cout << "ID: " << current->id << ", Nombre: " << current->name << " " << current->last_name
+			 << ", Género: " << current->gender << ", Edad: " << current->age
+			 << ", ID Padre: " << current->id_father << ", Muerto: " << current->is_dead
+			 << ", Fue Rey: " << current->was_king << ", Es Rey: " << current->is_king << endl;
+		printAllMembers(current->left);
+		printAllMembers(current->right);
+	}
 };
 
 
