@@ -304,4 +304,95 @@ public:
 
 		cout << "No se encontró sucesor válido." << endl;
 	}
+
+	void updatePerson(int id, const string& name, const string& last_name, char gender, int age, bool is_dead, bool was_king, bool is_king) {
+		Person* person = findPersonById(root, id);
+		if (person == nullptr) {
+			cout << "Persona con ID " << id << " no encontrada." << endl;
+			return;
+		}
+
+		person->name = name;
+		person->last_name = last_name;
+		person->gender = gender;
+		person->age = age;
+		person->is_dead = is_dead;
+		person->was_king = was_king;
+		person->is_king = is_king;
+
+		cout << "Datos actualizados para la persona con ID " << id << ":" << endl;
+		cout << "Nombre: " << person->name << " " << person->last_name << endl;
+		cout << "Género: " << person->gender << endl;
+		cout << "Edad: " << person->age << endl;
+		cout << "Muerto: " << person->is_dead << endl;
+		cout << "Fue Rey: " << person->was_king << endl;
+		cout << "Es Rey: " << person->is_king << endl;
+	}
+};
+
+int main() {
+	RoyalFamilyTree tree;
+	tree.loadFromCSV("Royal_family.csv");
+
+	int choice;
+	do {
+		cout << "\nMenú:\n";
+		cout << "1. Imprimir linea de sucesion actual \n";
+		cout << "2. Imprimir rey actual y sucesor\n";
+		cout << "3. Asesinar al rey y pasar corona\n";
+		cout << "4. Imprimir todos los miembros\n";
+		cout << "5. Actualizar datos de una persona\n";
+		cout << "6. Salir\n";
+		cout << "Elija una opción: ";
+		cin >> choice;
+
+		switch (choice) {
+			case 1:
+				tree.showLivingMembers();
+				break;
+			case 2:
+				tree.showCurrentKingAndSuccessor();
+				break;
+			case 3:
+				tree.assassinateKing();
+				break;
+			case 4:
+				tree.printAllMembers();
+				break;
+			case 5: {
+				int id;
+				string name, last_name;
+				char gender;
+				int age;
+				int is_dead_i, was_king_i, is_king_i;
+
+				cout << "Ingrese el ID de la persona a actualizar: ";
+				cin >> id;
+				cout << "Ingrese el nuevo nombre: ";
+				cin >> name;
+				cout << "Ingrese el nuevo apellido: ";
+				cin >> last_name;
+				cout << "Ingrese el nuevo género (H/M): ";
+				cin >> gender;
+				cout << "Ingrese la nueva edad: ";
+				cin >> age;
+				cout << "¿Está muerto? (1 para sí, 0 para no): ";
+				cin >> is_dead_i;
+				cout << "¿Fue rey? (1 para sí, 0 para no): ";
+				cin >> was_king_i;
+				cout << "¿Es rey? (1 para sí, 0 para no): ";
+				cin >> is_king_i;
+
+				tree.updatePerson(id, name, last_name, gender, age, is_dead_i != 0, was_king_i != 0, is_king_i != 0);
+				break;
+			}
+			case 6:
+				cout << "Saliendo..." << endl;
+				break;
+			default:
+				cout << "Opción no válida. Intente de nuevo." << endl;
+		}
+	} while (choice != 6);
+
+	return 0;
 }
